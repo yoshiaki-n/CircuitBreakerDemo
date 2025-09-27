@@ -1,3 +1,34 @@
 spring:
     application:
         name: circuitbreakerdemo
+logging:
+  level:
+    root: info
+    com.example.circuitbreakerdemo: debug
+resilience4j:
+  circuitbreaker:
+    configs:
+      # グローバルデフォルト設定
+      default:
+        # ヘルスチェックエンドでサーキットブレーカーのステータスが確認可能になる
+        registerHealthIndicator: true
+    instances:
+      # バックエンドA向けの設定
+      backendA:
+        # slidingWindowTypeをカウントベースにする
+        slidingWindowType: COUNT_BASED
+        # ここで指定した数のコール数を保持してエラーレートの計算に利用する
+        slidingWindowSize: 10
+        # エラーレートを計算するのに必要な最小のコール数
+        minimumNumberOfCalls: 5
+        # HALF_OPENの時に許可される呼び出しの数
+        permittedNumberOfCallsInHalfOpenState: 3 
+        # trueだと自動でHALF_OPENに移行する
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        # OPENからHALF_OPENに移行する前に待機する時間
+        waitDurationInOpenState: 5s
+        # 失敗率の閾値。この数値を超えて失敗しているとOPENに移行する
+        failureRateThreshold: 50
+        # ここで指定したExceptionが発生すると失敗としてカウントする
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException          
